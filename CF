@@ -1,0 +1,67 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Resources:
+
+  # EC2 instance to host Apache and WordPress
+  MyWordPressInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      KeyName: your-key-name # Make sure you have a key pair for SSH access
+      ImageId: ami-0c55b159cbfafe1f0 # Latest Amazon Linux AMI (Amazon Linux 2)
+      SecurityGroups:
+        - Ref: InstanceSecurityGroup
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          sudo yum update -y
+          sudo yum install -y httpd
+          sudo systemctl start httpd
+          sudo systemctl enable httpd
+          sudo yum install -y php php-mysqlnd php-fpm
+          sudo yum install -y wget
+          wget https://wordpress.org/latest.tar.gz
+          tar -xvzf latest.tar.gz
+          sudo mv wordpress /var/www/html/wordpress
+          sudo chown -R apache:apache /var/www/html/wordpress
+          sudo chmod -R 755 /var/www/html/wordpress
+          sudo systemctl restart httpd
+
+  # Security Group for EC2 instance
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow SSH, HTTP, and MySQL access
+      SecurityGroupIngress:
+        - CidrIp: "0.0.0.0/0"
+          IpProtocol: "tcp"
+          FromPort: "22"
+          ToPort: "22"
+        - CidrIp: "0.0.0.0/0"
+          IpProtocol: "tcp"
+          FromPort: "80"
+          ToPort: "80"
+        - CidrIp: "0.0.0.0/0"
+          IpProtocol: "tcp"
+          FromPort: "3306"
+          ToPort: "3306"
+
+  # RDS MySQL database instance
+  MyRDSInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceClass: db.t2.micro
+      AllocatedStorage: 20
+      DBInstanceIdentifier: mywordpressdb
+      Engine: MySQL
+      EngineVersion: 5.7
+      MasterUsername: admin
+      MasterUserPassword: adminpassword # Replace with a secure password
+      DBName: wordpress
+      BackupRetentionPeriod: 7
+      VPCSecurityGroups:
+        - Ref: InstanceSecurityGroup
+
+Outputs:
+  InstancePublicIP:
+    Description: "Public IP of the EC2 instance"
+    Value: !GetAtt MyWordPressInstance.PublicIp
