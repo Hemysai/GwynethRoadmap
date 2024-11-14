@@ -6,8 +6,8 @@ Resources:
     Type: AWS::EC2::Instance
     Properties:
       InstanceType: t2.micro
-      KeyName: your-key-name # Make sure you have a key pair for SSH access
-      ImageId: ami-0c55b159cbfafe1f0 # Latest Amazon Linux AMI (Amazon Linux 2)
+      KeyName: EC2-GPS-1 
+      ImageId: ami-0c55b159cbfafe1f0 
       SecurityGroups:
         - Ref: InstanceSecurityGroup
       UserData:
@@ -55,7 +55,7 @@ Resources:
       Engine: MySQL
       EngineVersion: 5.7
       MasterUsername: admin
-      MasterUserPassword: adminpassword # Replace with a secure password
+      MasterUserPassword: adminpassword 
       DBName: wordpress
       BackupRetentionPeriod: 7
       VPCSecurityGroups:
