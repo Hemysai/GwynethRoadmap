@@ -1,0 +1,33 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Resources:
+
+  MyRDSInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceClass: db.t2.micro  # Free tier-eligible instance class
+      AllocatedStorage: 20  # Minimum storage for free tier
+      DBInstanceIdentifier: mywordpressdb
+      Engine: MySQL
+      EngineVersion: 5.7  # Version of MySQL to use
+      MasterUsername: admin
+      MasterUserPassword: adminpassword
+      DBName: wordpress  # Name of the WordPress database
+      BackupRetentionPeriod: 7  # Backup retention period (in days)
+      MultiAZ: "false"  # Multi-AZ deployments not supported in free tier
+      VPCSecurityGroups:
+        - Ref: InstanceSecurityGroup  # Security group for RDS access
+
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Allow MySQL access from EC2"
+      SecurityGroupIngress:
+        - CidrIp: "0.0.0.0/0"  # Allow access from anywhere (tighten this for production)
+          IpProtocol: "tcp"
+          FromPort: "3306"
+          ToPort: "3306"
+
+Outputs:
+  RDSDBEndpoint:
+    Description: "RDS MySQL Endpoint"
+    Value: !GetAtt MyRDSInstance.Endpoint.Address
