@@ -2,6 +2,8 @@
 
 MadeByAI is a serverless SaaS application that leverages AWS Lambda, API Gateway, and Amazon Bedrock to generate structured AI responses in Markdown format. This project is designed to simplify content creation workflows and integrate seamlessly with modern applications.
 
+Website : gps.hemanth.click
+
 ## 🚀 Features
 
 - **Serverless Architecture**: Fully powered by AWS Lambda for scalability and cost efficiency.
