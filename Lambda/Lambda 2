@@ -19,36 +19,20 @@ def lambda_handler(event, context):
     # Initialize the Bedrock Runtime and S3 client
     bedrock_client = boto3.client("bedrock-runtime", region_name="us-east-1")
     s3_client = boto3.client("s3")
-    
-    # Define the model ID
     model_id = "amazon.titan-text-premier-v1:0"
-    
-    # S3 bucket name
-    input_bucket = "madebyai"
-    
+    input_bucket = " " # bucket name
     try:
-        # List objects in the madebyai bucket to find the latest object
         response = s3_client.list_objects_v2(Bucket=input_bucket)
-        
-        # Check if the bucket contains objects
         if 'Contents' not in response:
             return {
                 "statusCode": 400,
                 "body": json.dumps({"error": "No objects found in the madebyai bucket."})
             }
-        
-        # Find the latest object based on LastModified
         latest_object = max(response['Contents'], key=lambda x: x['LastModified'])
         latest_object_key = latest_object['Key']
-        
-        # Download the latest object from S3
         obj = s3_client.get_object(Bucket=input_bucket, Key=latest_object_key)
         raw_message = obj['Body'].read().decode('utf-8')  # Assuming the object contains a text message
-        
-        # Clean the raw message to generate a valid file name
         file_name = clean_filename(raw_message) + ".txt"
-        
-        # Prepare the user message for Bedrock to generate the simplified markdown template
         user_message = f"""
         Create a structured markdown template based on the following phase title: '{raw_message}'.
         Follow this structure:
@@ -64,9 +48,7 @@ def lambda_handler(event, context):
         - Resource 1: Title of the resource
         - Resource 2: Title of the resource
         - Resource 3: Title of the resource
-        """
-        
-        # Prepare the conversation payload for Bedrock
+        """ 
         conversation = [
             {
                 "role": "user",
@@ -74,7 +56,6 @@ def lambda_handler(event, context):
             }
         ]
         
-        # Call the Bedrock Runtime Converse API
         try:
             response = bedrock_client.converse(
                 modelId=model_id,
@@ -82,8 +63,7 @@ def lambda_handler(event, context):
             )
             response_text = response["output"]["message"]["content"][0]["text"]
             
-            # Upload the response to the S3 bucket as plain text
-            output_bucket = "gpsdataoutput"
+            output_bucket = " " #output bucket
             
             s3_client.put_object(
                 Bucket=output_bucket,  # The output bucket for saving responses
@@ -92,7 +72,6 @@ def lambda_handler(event, context):
                 ContentType="text/plain"
             )
             
-            # Return success message with the S3 object URL
             s3_url = f"s3://{output_bucket}/{file_name}"
             return {
                 "statusCode": 200,
@@ -100,20 +79,17 @@ def lambda_handler(event, context):
             }
         
         except ClientError as e:
-            # Log and return errors from the Bedrock API call
             return {
                 "statusCode": 500,
                 "body": json.dumps({"error": f"AI response generation failed: {str(e)}"})
             }
         
     except ClientError as e:
-        # Handle AWS S3-specific errors
         return {
             "statusCode": 500,
             "body": json.dumps({"error": f"AWS ClientError: {str(e)}"})
         }
     except Exception as e:
-        # Handle general errors
         return {
             "statusCode": 500,
             "body": json.dumps({"error": f"Unexpected error: {str(e)}"})
