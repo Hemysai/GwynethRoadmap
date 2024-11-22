@@ -22,11 +22,12 @@ MadeByAI is a serverless SaaS application that leverages AWS Lambda, API Gateway
 ---
 
 ## 📂 Project Structure
-Lambda - this contains all the three level lambda code
-readme - this contain the basic information
-wordpress - necessary plugins and code
-License - license information
-architecture- structure of the Saas tool.
+|---------------------|-----------------------------------------------|
+| Lambda              | this contains all the three level lambda code |
+| readme              | this contain the basic information            |
+| wordpress           | necessary plugins and code                    |
+| License             | license information                           |
+| architecture        | structure of the Saas tool.                   |
 
 ---
 
