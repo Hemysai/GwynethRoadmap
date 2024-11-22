@@ -1,0 +1,39 @@
+## In this step we get the latest response from AI saved on a S3 bucket
+---
+
+Need a API gateway for output
+
+## Lambda Code
+import json
+import boto3
+from datetime import datetime
+
+def lambda_handler(event, context):
+    # S3 bucket name
+    bucket_name = 'gpsdataoutput'
+    
+    # Initialize S3 client
+    s3 = boto3.client('s3')
+
+    # List files in the S3 bucket
+    response = s3.list_objects_v2(Bucket=bucket_name)
+    
+    if 'Contents' not in response:
+        return {
+            'statusCode': 400,
+            'body': json.dumps('No files found in the bucket.')
+        }
+    
+    # Sort the files by LastModified date
+    files = sorted(response['Contents'], key=lambda x: x['LastModified'], reverse=True)
+    
+    # Get the latest file
+    latest_file = files[0]
+    
+    # Construct the URL for the file (public URL)
+    file_url = f"https://{bucket_name}.s3.amazonaws.com/{latest_file['Key']}"
+    
+    return {
+        'statusCode': 200,
+        'body': json.dumps({'file_url': file_url, 'file_name': latest_file['Key']})
+    }
