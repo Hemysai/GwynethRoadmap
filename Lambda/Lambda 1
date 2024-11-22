@@ -9,24 +9,16 @@ import boto3
 import os
 from datetime import datetime
 
-# Initialize S3 client
 s3 = boto3.client('s3')
 
 def lambda_handler(event, context):
     try:
-        # Parse the incoming request body
         body = json.loads(event['body'])
         text_content = body.get('text', 'No text provided')  # Ensure we get the 'text' field
-
-        # Limit to 20 characters
         text_content = text_content[:20]
-
-        # Prepare file for S3
         bucket_name = os.environ['S3_BUCKET_NAME']
         timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
         file_name = f"text-{timestamp}.txt"
-
-        # Upload to S3
         s3.put_object(
             Bucket=bucket_name,
             Key=file_name,
